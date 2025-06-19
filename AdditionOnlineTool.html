@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Addition Practice</title>
+    <style>
+        :root {
+            --digit-width: 40px;
+            --grid-gap: 6px;
+            --operator-width: 30px;
+            /* Fixed width for operator column */
+
+            --primary-color: #007bff;
+            --primary-rgb: 0, 123, 255;
+            --primary-darker-color: #0056b3;
+
+            --success-color: #28a745;
+            --success-darker-color: #1e7e34;
+
+            --danger-color: #dc3545;
+            --danger-darker-color: #c82333;
+
+            --warning-color: #ffc107;
+            --warning-darker-color: #e0a800;
+
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --medium-dark-gray: #d6d8db;
+            --dark-gray: #6c757d;
+            --text-color: #333;
+            --text-muted-color: #555;
+            --border-color: #dcdfe6;
+            --input-focus-border-color: var(--primary-color);
+            --input-focus-shadow-color: rgba(var(--primary-rgb), 0.25);
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #eef1f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            width: auto;
+            max-width: 480px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.5s ease-out, background-color 1s ease;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 1.8em;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 span {
+            display: inline-block;
+        }
+
+        .problem-setup {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 8px;
+        }
+
+        .problem-setup label {
+            white-space: nowrap;
+            color: var(--text-muted-color);
+            font-size: 0.95em;
+        }
+
+        .problem-setup input[type="text"] {
+            width: 70px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1em;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .problem-setup input[type="text"]:focus {
+            border-color: var(--input-focus-border-color);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow-color);
+            outline: none;
+        }
+
+        .problem-setup button,
+        .action-button,
+        .number-pad button {
+            /* General button styling */
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.15s ease;
+        }
+
+        .problem-setup button:hover,
+        .action-button:hover,
+        .number-pad button:not(.reset-button):not(.clear-btn):hover {
+            /* Exclude special numpad buttons for their own hover */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .number-pad button:hover {
+            /* General hover for numpad data buttons */
+            background-color: var(--medium-gray);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .problem-setup button:active,
+        .action-button:active,
+        .number-pad button:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        #setProblemBtn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #setProblemBtn:hover {
+            background-color: var(--primary-darker-color);
+        }
+
+        #checkAnswerBtn {
+            background-color: var(--success-color);
+            color: white;
+            margin-top: 20px;
+        }
+
+        #checkAnswerBtn:hover {
+            background-color: var(--success-darker-color);
+        }
+
+        .reset-button {
+            /* Applied to Reset All, distinct from general .action-button */
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .reset-button:hover {
+            background-color: var(--danger-darker-color);
+            box-shadow: 0 2px 8px rgba(var(--danger-color), 0.3);
+        }
+
+        .top-addition-grid,
+        .bottom-addition-grid {
+            display: grid;
+            /* 1 operator column, 5 digit columns */
+            grid-template-columns: var(--operator-width) repeat(5, var(--digit-width));
+            gap: var(--grid-gap);
+            justify-content: center;
+            align-items: center;
+            direction: ltr;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-addition-grid {
+            margin-bottom: 0;
+        }
+
+        .bottom-addition-grid {
+            margin-top: 0;
+        }
+
+        /* General styling for cells in the addition grid */
+        .top-addition-grid>div,
+        .top-addition-grid>input,
+        .bottom-addition-grid>div,
+        .bottom-addition-grid>input {
+            height: var(--digit-width);
+            /* All cells maintain same height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        /* Specific width for digit display cells and inputs */
+        .top-addition-grid>.digit-display,
+        .top-addition-grid>.carry-input,
+        .bottom-addition-grid>.sum-input {
+            width: var(--digit-width);
+        }
+
+        .carry-input,
+        .sum-input {
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            text-align: center;
+            padding: 0;
+            font-weight: 500;
+            font-size: 1.6em;
+            /* Match digit-display font size */
+            background-color: #fff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .carry-input:focus,
+        .sum-input:focus {
+            border-color: var(--input-focus-border-color);
+            box-shadow: 0 0 0 3px var(--input-focus-shadow-color);
+            outline: none;
+        }
+
+        .carry-input {
+            font-size: 0.9em;
+        }
+
+        /* Override for smaller carry font */
+        .carry-input:disabled {
+            background-color: var(--medium-gray);
+            color: var(--dark-gray);
+            cursor: not-allowed;
+        }
+
+        .digit-display {
+            font-weight: 600;
+            font-size: 1.6em;
+            color: var(--text-color);
+            width: var(--digit-width);
+            /* Ensure digit-display also gets this */
+        }
+
+        .digit-display.new-digit {
+            animation: fadeInDigit 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeInDigit {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .operator {
+            grid-column: 1 / 2;
+            /* Operator in the 1st column */
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--text-muted-color);
+            width: var(--operator-width);
+            /* Takes the defined operator column width */
+            padding-right: 5px;
+            /* Space between operator and first number column */
+        }
+
+        .operator-column-spacer {
+            /* For empty cells in operator column */
+            width: var(--operator-width);
+        }
+
+
+        .problem-separator {
+            width: calc(5 * var(--digit-width) + 4 * var(--grid-gap));
+            margin: calc(var(--grid-gap) + 4px) auto;
+            border: none;
+            height: 2px;
+            background-color: var(--text-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            /* Reduced slightly as reset button moved */
+            margin-bottom: 15px;
+            /* Added for spacing before numpad */
+            font-size: 1.1em;
+            font-weight: 500;
+            min-height: 1.5em;
+            transition: color 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feedback.animating-incorrect {
+            animation: shakeFeedback 0.5s ease-in-out;
+        }
+
+        .feedback.correct {
+            color: var(--success-color);
+        }
+
+        .feedback.correct::before {
+            content: "✅ ";
+            display: inline-block;
+            animation: pulseIcon 0.6s ease-out;
+        }
+
+        .feedback.incorrect {
+            color: var(--danger-color);
+        }
+
+        .feedback.incorrect::before {
+            content: "❌ ";
+            display: inline-block;
+            animation: pulseIcon 0.6s ease-in-out;
+        }
+
+        @keyframes pulseIcon {
+            0% {
+                transform: scale(0.7);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shakeFeedback {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-6px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* 5 columns for 0-9 and Clear/Reset */
+            gap: 8px;
+            margin-top: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .number-pad button {
+            /* General styling for all buttons in numpad */
+            padding: 14px;
+            font-size: 1.25em;
+            /* background-color already part of general button style if not overridden */
+            border: 1px solid var(--medium-dark-gray);
+            color: var(--text-color);
+        }
+
+        .number-pad button[data-value] {
+            /* Specific for digit buttons */
+            background-color: var(--light-gray);
+        }
+
+        .number-pad button[data-value]:hover {
+            background-color: var(--medium-gray);
+        }
+
+        .number-pad .clear-btn {
+            /* For "Clear" button specific styling */
+            grid-column: span 3;
+            /* Takes 3 of 5 columns */
+            background-color: var(--warning-color);
+            border-color: var(--warning-darker-color);
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .number-pad .clear-btn:hover {
+            background-color: var(--warning-darker-color);
+            box-shadow: 0 2px 8px rgba(var(--warning-color), 0.4);
+        }
+
+        .number-pad .reset-button {
+            /* For "Reset All" button specific styling in numpad */
+            grid-column: span 2;
+            /* Takes 2 of 5 columns */
+            /* background-color from .reset-button class */
+        }
+
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+
+        /* --- CORRECT ANSWER WILD ANIMATIONS --- */
+        .animation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        /* ... (All 12 wild animation styles remain unchanged) ... */
+        .correct-anim-confetti .animation-overlay::before,
+        .correct-anim-confetti .animation-overlay::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 20px;
+            opacity: 0;
+            animation: confetti-fall 2.5s ease-out forwards;
+        }
+
+        .correct-anim-confetti .animation-overlay::before {
+            background: gold;
+            top: -20%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .correct-anim-confetti .animation-overlay::after {
+            background: dodgerblue;
+            top: -20%;
+            left: 80%;
+            animation-delay: 0.2s;
+        }
+
+        .correct-anim-confetti .animation-overlay span.confetti {
+            position: absolute;
+            width: 8px;
+            height: 15px;
+            opacity: 0;
+            animation: confetti-fall 2.5s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(120vh) rotate(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .correct-anim-sum-glow-bounce .sum-input {
+            animation: sum-glow-bounce 0.8s ease-in-out;
+        }
+
+        @keyframes sum-glow-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 0 5px var(--success-color);
+            }
+
+            25% {
+                transform: translateY(-10px) scale(1.1);
+                box-shadow: 0 0 15px var(--success-color), 0 0 25px var(--success-color);
+            }
+
+            50% {
+                transform: translateY(0) scale(1);
+            }
+
+            75% {
+                transform: translateY(-5px) scale(1.05);
+            }
+        }
+
+        .correct-anim-rainbow-bg.anim-once {
+            animation: rainbow-wave-bg-once 2.5s ease-out forwards;
+        }
+
+        @keyframes rainbow-wave-bg-once {
+            0% {
+                background-color: #fff;
+            }
+
+            20% {
+                background-color: hsl(0, 80%, 85%);
+            }
+
+            40% {
+                background-color: hsl(120, 80%, 85%);
+            }
+
+            60% {
+                background-color: hsl(240, 80%, 85%);
+            }
+
+            80% {
+                background-color: hsl(300, 80%, 85%);
+            }
+
+            100% {
+                background-color: #fff;
+            }
+        }
+
+        .correct-anim-checkmark-explode .feedback.correct::before {
+            animation: checkmark-starburst 1s forwards;
+        }
+
+        @keyframes checkmark-starburst {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(5) rotate(360deg);
+                opacity: 0.5;
+                color: gold;
+            }
+
+            100% {
+                transform: scale(0.1) rotate(720deg);
+                opacity: 0;
+                color: gold;
+            }
+        }
+
+        .correct-anim-title-wave h1 span {
+            animation: title-letter-wave 0.8s ease-in-out forwards;
+        }
+
+        @keyframes title-letter-wave {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+                color: var(--primary-color);
+            }
+        }
+
+        .correct-anim-grid-shuffle .top-addition-grid {
+            animation: grid-shuffle 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            animation-delay: 0s;
+        }
+
+        .correct-anim-grid-shuffle .bottom-addition-grid {
+            animation: grid-shuffle 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes grid-shuffle {
+            0% {
+                transform: translateX(0) rotate(0);
+            }
+
+            25% {
+                transform: translateX(-15px) rotate(-3deg);
+            }
+
+            50% {
+                transform: translateX(15px) rotate(3deg);
+            }
+
+            75% {
+                transform: translateX(-5px) rotate(-1deg);
+            }
+
+            100% {
+                transform: translateX(0) rotate(0);
+            }
+        }
+
+        .correct-anim-sparkle-dust .animation-overlay .sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: gold;
+            border-radius: 50%;
+            opacity: 0;
+            animation: sparkle-effect 1.5s ease-out forwards;
+            box-shadow: 0 0 5px gold, 0 0 10px gold;
+        }
+
+        @keyframes sparkle-effect {
+            0% {
+                transform: scale(0.1) translateY(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1) translateY(-20px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.1) translateY(-40px);
+                opacity: 0;
+            }
+        }
+
+        .correct-anim-zoom-rotate-container {
+            animation: zoom-rotate-container 0.8s ease-in-out forwards;
+        }
+
+        @keyframes zoom-rotate-container {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.05) rotate(5deg);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            }
+        }
+
+        .correct-anim-feedback-electric .feedback.correct {
+            animation: electric-text 0.1s linear infinite alternate;
+            text-shadow: 0 0 2px #fff, 0 0 5px var(--success-color), 0 0 8px var(--success-color);
+        }
+
+        @keyframes electric-text {
+            from {
+                text-shadow: 0 0 2px #fff, 0 0 4px var(--success-color), 0 0 6px var(--success-color), 0 0 8px var(--success-darker-color);
+            }
+
+            to {
+                text-shadow: 0 0 3px #fff, 0 0 6px var(--success-color), 0 0 9px var(--success-color), 0 0 12px var(--success-darker-color), 1px 1px 2px var(--primary-color);
+            }
+        }
+
+        .correct-anim-buttons-dance .number-pad button[data-value] {
+            animation: button-dance 0.5s ease-in-out;
+        }
+
+        /* Only dance digit buttons */
+        @keyframes button-dance {
+
+            0%,
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(-5deg) scale(1.05);
+            }
+
+            75% {
+                transform: rotate(5deg) scale(1.05);
+            }
+        }
+
+        .correct-anim-input-cascade-fill .sum-input {
+            position: relative;
+            background-color: transparent;
+        }
+
+        .correct-anim-input-cascade-fill .sum-input::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            background-color: var(--success-color);
+            opacity: 0.7;
+            animation: input-fill 0.5s ease-out forwards;
+            z-index: -1;
+        }
+
+        @keyframes input-fill {
+            to {
+                height: 100%;
+            }
+        }
+
+        .correct-anim-fireworks .animation-overlay .firework-particle {
+            /* JS will set more specific styles */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="animation-overlay" id="animationOverlay"></div>
+        <h1>Math Addition Practice</h1>
+
+        <div class="problem-setup">
+            <label for="num1Inp">Number 1:</label>
+            <input type="text" id="num1Inp" value="123" maxlength="5">
+            <label for="num2Inp">Number 2:</label>
+            <input type="text" id="num2Inp" value="1234" maxlength="5">
+            <button id="setProblemBtn">Set Problem</button>
+        </div>
+
+        <div class="top-addition-grid">
+            <!-- Row 1: Carry Inputs -->
+            <div class="operator-column-spacer"></div> <!-- Spacer for operator column -->
+            <input type="text" class="carry-input" id="carry0" maxlength="1">
+            <input type="text" class="carry-input" id="carry1" maxlength="1">
+            <input type="text" class="carry-input" id="carry2" maxlength="1">
+            <input type="text" class="carry-input" id="carry3" maxlength="1">
+            <input type="text" class="carry-input" id="carry4" maxlength="1" disabled>
+
+            <!-- Row 2: First Addend -->
+            <div class="operator-column-spacer"></div> <!-- Spacer for operator column -->
+            <div class="digit-display" id="n1d0">0</div>
+            <div class="digit-display" id="n1d1">0</div>
+            <div class="digit-display" id="n1d2">0</div>
+            <div class="digit-display" id="n1d3">0</div>
+            <div class="digit-display" id="n1d4">0</div>
+
+            <!-- Row 3: Second Addend & Operator -->
+            <div class="operator">+</div> <!-- Operator in the first column -->
+            <div class="digit-display" id="n2d0">0</div>
+            <div class="digit-display" id="n2d1">0</div>
+            <div class="digit-display" id="n2d2">0</div>
+            <div class="digit-display" id="n2d3">0</div>
+            <div class="digit-display" id="n2d4">0</div>
+        </div>
+
+        <hr class="problem-separator">
+
+        <div class="bottom-addition-grid">
+            <!-- Sum Inputs -->
+            <div class="operator-column-spacer"></div> <!-- Spacer for operator column -->
+            <input type="text" class="sum-input" id="sum0" maxlength="1">
+            <input type="text" class="sum-input" id="sum1" maxlength="1">
+            <input type="text" class="sum-input" id="sum2" maxlength="1">
+            <input type="text" class="sum-input" id="sum3" maxlength="1">
+            <input type="text" class="sum-input" id="sum4" maxlength="1">
+        </div>
+
+        <button id="checkAnswerBtn" class="action-button">Check Answer</button>
+        <div id="feedback" class="feedback"></div>
+        <!-- Reset All button moved to number-pad -->
+
+        <div class="number-pad">
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button data-value="0">0</button>
+            <!-- Clear and Reset All buttons will form the last row of the numpad -->
+            <button id="clearNumPadBtn" class="action-button clear-btn">Clear</button>
+            <button id="resetAllBtn" class="action-button reset-button">Reset All</button>
+        </div>
+    </div>
+
+    <script>
+        const num1Input = document.getElementById('num1Inp');
+        const num2Input = document.getElementById('num2Inp');
+        const setProblemBtn = document.getElementById('setProblemBtn');
+        const checkAnswerBtn = document.getElementById('checkAnswerBtn');
+        const feedbackDiv = document.getElementById('feedback');
+        const numberPad = document.querySelector('.number-pad');
+        const mainContainer = document.querySelector('.container');
+        const animationOverlay = document.getElementById('animationOverlay');
+        const h1Title = document.querySelector('h1');
+        const resetAllBtn = document.getElementById('resetAllBtn');
+        const clearNumPadBtn = document.getElementById('clearNumPadBtn');
+
+
+        const MAX_DIGITS = 5;
+        let activeInput = null;
+
+        const carryInputs = [];
+        const sumInputs = [];
+        const n1Displays = [];
+        const n2Displays = [];
+
+        for (let i = 0; i < MAX_DIGITS; i++) {
+            carryInputs.push(document.getElementById(`carry${i}`));
+            sumInputs.push(document.getElementById(`sum${i}`));
+            n1Displays.push(document.getElementById(`n1d${i}`));
+            n2Displays.push(document.getElementById(`n2d${i}`));
+        }
+
+        h1Title.innerHTML = h1Title.textContent.split('').map(letter => `<span>${letter}</span>`).join('');
+        const titleSpans = h1Title.querySelectorAll('span');
+
+        const correctAnimationClasses = [
+            'correct-anim-confetti',
+            'correct-anim-sum-glow-bounce',
+            'correct-anim-rainbow-bg anim-once',
+            'correct-anim-checkmark-explode',
+            'correct-anim-title-wave',
+            'correct-anim-grid-shuffle',
+            'correct-anim-sparkle-dust',
+            'correct-anim-zoom-rotate-container',
+            'correct-anim-feedback-electric',
+            'correct-anim-buttons-dance',
+            'correct-anim-input-cascade-fill',
+            'correct-anim-fireworks'
+        ];
+        let currentAppliedAnimClass = null;
+
+        setProblemBtn.addEventListener('click', setupProblem);
+        checkAnswerBtn.addEventListener('click', checkAnswer);
+        resetAllBtn.addEventListener('click', handleResetAll);
+
+        [...carryInputs, ...sumInputs].forEach(input => {
+            if (input) {
+                input.addEventListener('focus', () => {
+                    if (!input.disabled) activeInput = input;
+                });
+                input.addEventListener('input', function (e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 1) this.value = this.value.slice(0, 1);
+                });
+            }
+        });
+
+        // Combined Number Pad Logic
+        numberPad.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON' && activeInput && !activeInput.disabled) {
+                const value = e.target.dataset.value;
+                if (value) { // Digit button
+                    activeInput.value = value;
+                    focusNext(activeInput);
+                }
+            }
+            // Handle Clear button specifically (if it's the target and activeInput exists)
+            if (e.target.id === 'clearNumPadBtn' && activeInput && !activeInput.disabled) {
+                activeInput.value = '';
+            }
+            // Reset All button is handled by its own direct event listener
+        });
+
+
+        function focusNext(currentInput) {
+            const allInputs = [...carryInputs, ...sumInputs].filter(inp => inp && !inp.disabled);
+            const currentIndex = allInputs.indexOf(currentInput);
+            if (currentIndex > 0) {
+                allInputs[currentIndex - 1].focus();
+            } else if (currentIndex === 0) {
+                currentInput.blur();
+            }
+        }
+
+        function handleResetAll() {
+            num1Input.value = '';
+            num2Input.value = '';
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                if (carryInputs[i]) carryInputs[i].value = '';
+                if (sumInputs[i]) sumInputs[i].value = '';
+            }
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                if (n1Displays[i]) { n1Displays[i].textContent = ' '; n1Displays[i].classList.remove('new-digit'); }
+                if (n2Displays[i]) { n2Displays[i].textContent = ' '; n2Displays[i].classList.remove('new-digit'); }
+            }
+            feedbackDiv.textContent = '';
+            feedbackDiv.className = 'feedback';
+            activeInput = null;
+            clearPreviousAnimations();
+            num1Input.focus();
+        }
+
+
+        function setupProblem() {
+            [...n1Displays, ...n2Displays].forEach(el => el.classList.remove('new-digit'));
+            void document.body.offsetWidth;
+
+            const rawVal1 = num1Input.value;
+            const rawVal2 = num2Input.value;
+
+            if (!/^\d+$/.test(rawVal1) || !/^\d+$/.test(rawVal2) || rawVal1.length > MAX_DIGITS || rawVal2.length > MAX_DIGITS) {
+                feedbackDiv.textContent = `Please enter valid numbers (1 to ${MAX_DIGITS} digits).`;
+                feedbackDiv.className = 'feedback incorrect animating-incorrect';
+                for (let i = 0; i < MAX_DIGITS; i++) {
+                    if (n1Displays[i]) n1Displays[i].textContent = ' ';
+                    if (n2Displays[i]) n2Displays[i].textContent = ' ';
+                    if (carryInputs[i]) carryInputs[i].value = '';
+                    if (sumInputs[i]) sumInputs[i].value = '';
+                }
+                return;
+            }
+
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                if (carryInputs[i]) carryInputs[i].value = '';
+                if (sumInputs[i]) sumInputs[i].value = '';
+            }
+
+            const val1Padded = rawVal1.padStart(MAX_DIGITS, '0');
+            const val2Padded = rawVal2.padStart(MAX_DIGITS, '0');
+
+            let firstDigitIndex1 = val1Padded.search(/[^0]/);
+            if (firstDigitIndex1 === -1 && rawVal1.length > 0 && rawVal1 !== '0'.repeat(rawVal1.length)) firstDigitIndex1 = MAX_DIGITS - rawVal1.length; // Adjust if leading zeros are part of a shorter number
+            else if (rawVal1 === '0' || rawVal1 === '00' || rawVal1 === '000' || rawVal1 === '0000' || rawVal1 === '00000') firstDigitIndex1 = MAX_DIGITS - 1; // show single 0
+            else if (firstDigitIndex1 === -1) firstDigitIndex1 = MAX_DIGITS - 1; // fallback for all zeros if not caught
+
+
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                if (n1Displays[i]) {
+                    const newContent = (firstDigitIndex1 === -1 || i < firstDigitIndex1) ? ' ' : val1Padded[i];
+                    if (n1Displays[i].textContent !== newContent || (newContent.trim() !== '' && !n1Displays[i].classList.contains('new-digit'))) {
+                        n1Displays[i].textContent = newContent;
+                        if (newContent.trim() !== '') n1Displays[i].classList.add('new-digit');
+                    } else if (newContent.trim() === '') {
+                        n1Displays[i].textContent = ' ';
+                    }
+                }
+            }
+
+            let firstDigitIndex2 = val2Padded.search(/[^0]/);
+            if (firstDigitIndex2 === -1 && rawVal2.length > 0 && rawVal2 !== '0'.repeat(rawVal2.length)) firstDigitIndex2 = MAX_DIGITS - rawVal2.length;
+            else if (rawVal2 === '0' || rawVal2 === '00' || rawVal2 === '000' || rawVal2 === '0000' || rawVal2 === '00000') firstDigitIndex2 = MAX_DIGITS - 1;
+            else if (firstDigitIndex2 === -1) firstDigitIndex2 = MAX_DIGITS - 1;
+
+
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                if (n2Displays[i]) {
+                    const newContent = (firstDigitIndex2 === -1 || i < firstDigitIndex2) ? ' ' : val2Padded[i];
+                    if (n2Displays[i].textContent !== newContent || (newContent.trim() !== '' && !n2Displays[i].classList.contains('new-digit'))) {
+                        n2Displays[i].textContent = newContent;
+                        if (newContent.trim() !== '') n2Displays[i].classList.add('new-digit');
+                    } else if (newContent.trim() === '') {
+                        n2Displays[i].textContent = ' ';
+                    }
+                }
+            }
+
+            feedbackDiv.textContent = '';
+            feedbackDiv.className = 'feedback';
+
+            const focusableSumInputs = sumInputs.filter(inp => inp && !inp.disabled);
+            if (focusableSumInputs.length > 0) {
+                focusableSumInputs[focusableSumInputs.length - 1].focus();
+            }
+        }
+
+        function clearPreviousAnimations() {
+            if (currentAppliedAnimClass) {
+                currentAppliedAnimClass.split(' ').forEach(cls => mainContainer.classList.remove(cls));
+            }
+            animationOverlay.innerHTML = '';
+            titleSpans.forEach(span => { span.style.animationDelay = ''; span.style.animationName = ''; });
+            sumInputs.forEach(input => {
+                input.style.animationDelay = '';
+                input.style.animationName = '';
+                if (mainContainer.classList.contains('correct-anim-input-cascade-fill')) {
+                    input.style.backgroundColor = '#fff';
+                }
+            });
+            document.querySelectorAll('.number-pad button[data-value]').forEach(btn => { btn.style.animationDelay = ''; btn.style.animationName = ''; })
+            currentAppliedAnimClass = null;
+        }
+
+        function triggerWildCorrectAnimation() {
+            clearPreviousAnimations();
+            const randomIndex = Math.floor(Math.random() * correctAnimationClasses.length);
+            const animClass = correctAnimationClasses[randomIndex];
+            currentAppliedAnimClass = animClass;
+            animClass.split(' ').forEach(cls => mainContainer.classList.add(cls));
+
+            if (animClass.includes('correct-anim-confetti')) {
+                for (let i = 0; i < 30; i++) {
+                    const confetti = document.createElement('span'); confetti.classList.add('confetti');
+                    confetti.style.left = Math.random() * 100 + '%'; confetti.style.top = (Math.random() * 50 - 70) + '%';
+                    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg) scale(${Math.random() * 0.5 + 0.5})`;
+                    animationOverlay.appendChild(confetti);
+                }
+            } else if (animClass.includes('correct-anim-title-wave')) {
+                titleSpans.forEach((span, index) => { span.style.animationDelay = `${index * 0.05}s`; span.style.animationName = 'title-letter-wave'; });
+            } else if (animClass.includes('correct-anim-sparkle-dust')) {
+                for (let i = 0; i < 15; i++) {
+                    const sparkle = document.createElement('div'); sparkle.classList.add('sparkle');
+                    sparkle.style.left = Math.random() * 90 + 5 + '%'; sparkle.style.top = Math.random() * 80 + 10 + '%';
+                    sparkle.style.animationDelay = Math.random() * 0.8 + 's';
+                    animationOverlay.appendChild(sparkle);
+                }
+            } else if (animClass.includes('correct-anim-buttons-dance')) {
+                document.querySelectorAll('.number-pad button[data-value]').forEach((button, index) => { /* Only digit buttons dance */
+                    button.style.animationDelay = `${index * 0.03}s`; button.style.animationName = 'button-dance';
+                });
+            } else if (animClass.includes('correct-anim-input-cascade-fill')) {
+                sumInputs.forEach((input, index) => {
+                    input.style.animationDelay = `${(sumInputs.length - 1 - index) * 0.1}s`;
+                    input.style.animationName = 'none'; void input.offsetWidth; input.style.animationName = '';
+                });
+            } else if (animClass.includes('correct-anim-fireworks')) {
+                for (let i = 0; i < 5; i++) {
+                    const burstX = Math.random() * 60 + 20 + '%'; const burstY = Math.random() * 30 + 10 + '%';
+                    for (let j = 0; j < 20; j++) {
+                        const particle = document.createElement('div'); particle.classList.add('firework-particle');
+                        particle.style.position = 'absolute'; particle.style.width = '5px'; particle.style.height = '5px';
+                        particle.style.borderRadius = '50%'; particle.style.left = burstX; particle.style.top = burstY;
+                        particle.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                        const finalX = (Math.random() - 0.5) * 200; const finalY = (Math.random() - 0.5) * 200;
+                        particle.animate([
+                            { transform: `scale(0.1) translate(0,0)`, opacity: 1, offset: 0 },
+                            { transform: `scale(1) translate(${finalX}px, ${finalY}px)`, opacity: 0, offset: 1 }
+                        ], { duration: 1000, delay: Math.random() * 500 + i * 150, easing: 'ease-out', fill: 'forwards' });
+                        animationOverlay.appendChild(particle);
+                    }
+                }
+            }
+            setTimeout(() => { clearPreviousAnimations(); }, 3000);
+        }
+
+
+        function checkAnswer() {
+            const n1Str = num1Input.value;
+            const n2Str = num2Input.value;
+
+            // Updated check: ensure numbers are actual digits, or if empty, it's not a valid problem to check
+            const isNum1Valid = /^\d+$/.test(n1Str) && n1Str.length > 0;
+            const isNum2Valid = /^\d+$/.test(n2Str) && n2Str.length > 0;
+
+            if (!isNum1Valid || !isNum2Valid) {
+                feedbackDiv.textContent = 'Please set a valid problem first (enter both numbers).';
+                feedbackDiv.className = 'feedback incorrect animating-incorrect';
+                return;
+            }
+            const n1 = parseInt(n1Str) || 0;
+            const n2 = parseInt(n2Str) || 0;
+
+            const correctSum = n1 + n2;
+            let userAnswerStr = "";
+            for (let i = 0; i < MAX_DIGITS; i++) {
+                userAnswerStr += sumInputs[i] ? (sumInputs[i].value || "0") : "0";
+            }
+            const userAnswer = parseInt(userAnswerStr);
+            const userAnswerDisplay = userAnswerStr.replace(/^0+(?=\d)/, '') || "0";
+
+            feedbackDiv.classList.remove('animating-incorrect');
+            void feedbackDiv.offsetWidth;
+
+            if (userAnswer === correctSum) {
+                feedbackDiv.textContent = `Correct! ${n1Str} + ${n2Str} = ${correctSum}`;
+                feedbackDiv.className = 'feedback correct';
+                triggerWildCorrectAnimation();
+            } else {
+                feedbackDiv.textContent = `Incorrect. You entered ${userAnswerDisplay}. The sum is ${correctSum}.`;
+                feedbackDiv.className = 'feedback incorrect animating-incorrect';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            num1Input.value = "0";
+            num2Input.value = "0";
+            setupProblem();
+            feedbackDiv.textContent = 'Enter the sum and carries, then check your answer!';
+            feedbackDiv.className = 'feedback';
+        });
+    </script>
+</body>
+
+</html>
